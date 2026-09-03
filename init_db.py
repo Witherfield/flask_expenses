@@ -1,8 +1,5 @@
 import sqlite3
 
-
-
-
 connection = sqlite3.connect("wydatki.db") # IF THE FILE DOESN'T EXIST YET, SQLITE CREATES IT AUTOMATICALLY
 cursor = connection.cursor() # A "CURSOR" IS WHAT LETS US RUN SQL COMMANDS AGAINST THE DATABASE
 

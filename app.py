@@ -20,16 +20,21 @@ def home():
     return render_template("index.html")
 
 
+DOZWOLONE_TYPY = ["KONTO", "GOTÓWKA", "PORTFEL", "PAYPAL", "CŁO"]
+
 @app.route("/salda_faktyczne")
 def salda_faktyczne():
     connection = get_db_connection()
     cursor = connection.cursor()
     cursor.execute("SELECT TYP, KWOTA FROM salda")
-    rows = cursor.fetchall() # LIST OF ALL ROWS FROM THE TABLE
+    rows = cursor.fetchall()
     connection.close()
 
-    # PASS THE ROWS INTO THE TEMPLATE AS A VARIABLE CALLED "SALDA"
-    return render_template("salda_faktyczne.html", salda=rows, active="salda")
+    salda_dict = {row["TYP"]: row["KWOTA"] for row in rows}
+
+    return render_template("salda_faktyczne.html", salda=rows,
+                            typy=DOZWOLONE_TYPY, salda_dict=salda_dict,
+                            active="salda")
 
 
 @app.route("/salda_faktyczne/aktualizuj", methods=["POST"])
