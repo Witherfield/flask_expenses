@@ -1,5 +1,8 @@
 import sqlite3
 
+
+
+
 connection = sqlite3.connect("wydatki.db") # IF THE FILE DOESN'T EXIST YET, SQLITE CREATES IT AUTOMATICALLY
 cursor = connection.cursor() # A "CURSOR" IS WHAT LETS US RUN SQL COMMANDS AGAINST THE DATABASE
 
@@ -23,6 +26,22 @@ CREATE TABLE IF NOT EXISTS transakcje (
     MIEJSCE TEXT NOT NULL,
     KWOTA REAL NOT NULL,
     KONTO TEXT NOT NULL DEFAULT 'GŁÓWNE'
+)
+""")
+
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS kilometry_opel (
+    ID INTEGER PRIMARY KEY AUTOINCREMENT,
+    DATA TEXT NOT NULL,
+    PRZEBIEG INTEGER NOT NULL
+)
+""")
+
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS kilometry_suzuki (
+    ID INTEGER PRIMARY KEY AUTOINCREMENT,
+    DATA TEXT NOT NULL,
+    PRZEBIEG INTEGER NOT NULL
 )
 """)
 

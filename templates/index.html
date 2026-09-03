@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>WYDATKI</title>
+    <title>WYDATKI KOTÓW</title>
 
     <!-- Bootstrap CSS, loaded from a CDN (no install needed) -->
     <link
@@ -12,22 +12,11 @@
 </head>
 <body class="bg-light">
 
+    <!-- FROM PARTIAL TEMPLATE -->
     <div class="container text-center" style="margin-top: 100px;">
-
-        <h1 class="display-1 fw-bold text-dark" style="letter-spacing: 4px;">
-            WYDATKI
-        </h1>
-
-        <p class="lead text-secondary mb-5">
-            SYSTEM ZARZĄDZANIA WYDATKAMI
-        </p>
-
-        <!-- Buttons using Bootstrap's built-in classes -->
-        <div class="d-flex justify-content-center gap-3">
-            <a href="#" class="btn btn-primary btn-lg">Add Expense</a>
-            <a href="/salda" class="btn btn-outline-secondary btn-lg">View Reports</a>
-        </div>
-
+        <h1 class="fw-bold text-dark" style="letter-spacing: 4px;">WYDATKI</h1>
+        <p class="lead text-secondary mb-5">SYSTEM ZARZĄDZANIA WYDATKAMI KOTÓW</p>
+        {% include "nav.html" %}
     </div>
 
     <!-- Bootstrap JS (needed for things like dropdowns/menus later) -->
