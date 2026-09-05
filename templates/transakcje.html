@@ -14,6 +14,9 @@
     .filter-menu .form-check { margin-bottom: 2px; white-space: nowrap; }
     .filter-menu .form-check-label { white-space: nowrap; }
     .date-filter-menu { padding: 12px; }
+    .sortable-th { cursor: pointer; user-select: none; white-space: nowrap; }
+    .sort-arrow { font-size: 0.7rem; margin-left: 4px; opacity: 0.4; }
+    .sort-arrow.active { opacity: 1; }
     </style>
 </head>
 <body class="bg-light">
@@ -70,12 +73,12 @@
                 <table class="table table-bordered bg-white" id="transakcjeTable" style="text-align: left;">
                     <thead class="table-dark" style="position: sticky; top: 0;">
                         <tr>
-                            <th>DATA</th>
-                            <th>TYP</th>
-                            <th>KATEGORIA</th>
-                            <th>MIEJSCE</th>
-                            <th>KWOTA</th>
-                            <th>KONTO</th>
+                            <th class="sortable-th" data-col="0" data-type="string">DATA <span class="sort-arrow">▲</span></th>
+                            <th class="sortable-th" data-col="1" data-type="string">TYP <span class="sort-arrow">▲</span></th>
+                            <th class="sortable-th" data-col="2" data-type="string">KATEGORIA <span class="sort-arrow">▲</span></th>
+                            <th class="sortable-th" data-col="3" data-type="string">MIEJSCE <span class="sort-arrow">▲</span></th>
+                            <th class="sortable-th" data-col="4" data-type="number">KWOTA <span class="sort-arrow">▲</span></th>
+                            <th class="sortable-th" data-col="5" data-type="string">KONTO <span class="sort-arrow">▲</span></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -85,7 +88,7 @@
                             <td>{{ row["TYP"] }}</td>
                             <td>{{ row["KATEGORIA"] }}</td>
                             <td>{{ row["MIEJSCE"] }}</td>
-                            <td class="text-end fw-bold {{ 'text-danger' if row['KWOTA'] < 0 else 'text-success' }}">
+                            <td class="text-end fw-bold {{ 'text-muted' if row['KWOTA'] == 0 else ('text-danger' if row['KWOTA'] < 0 else 'text-success') }}">
                                 {{ "{:,.2f}".format(row["KWOTA"]) }} zł
                             </td>
                             <td>{{ row["KONTO"] }}</td>
@@ -109,10 +112,14 @@
 
     <script>
     const table = document.getElementById('transakcjeTable');
+    const tbody = table.querySelector('tbody');
+    const totalRowEl = table.querySelector('.total-row');
     const CHECKBOX_COLS = ['1', '2', '3', '5']; // TYP, KATEGORIA, MIEJSCE, KONTO
     const activeFilters = {};
     let dateFrom = '';
     let dateTo = '';
+    let sortCol = null;
+    let sortDir = 'asc';
 
     CHECKBOX_COLS.forEach(col => activeFilters[col] = new Set());
 
@@ -129,7 +136,7 @@
 
     // --- One-time cache: read the DOM once into plain JS objects ---
     const rowsData = [];
-    table.querySelectorAll('tbody tr:not(.total-row)').forEach(tr => {
+    tbody.querySelectorAll('tr:not(.total-row)').forEach(tr => {
         rowsData.push({
             el: tr,
             0: tr.children[0].textContent.trim(), // DATA
@@ -151,7 +158,6 @@
         }
     }
 
-    // returns true if a cached row object passes date + all checkbox filters EXCEPT excludeCol
     function rowPasses(row, excludeCol) {
         if (dateFrom || dateTo) {
             const cellDate = row[0];
@@ -262,6 +268,48 @@
         document.getElementById('liveTotal').textContent = 'SUMA: ' + formatted;
         document.getElementById('totalRowCell').textContent = formatted;
     }
+
+    // --- Sorting ---
+    document.querySelectorAll('.sortable-th').forEach(th => {
+        th.addEventListener('click', () => {
+            const col = th.dataset.col;
+            const type = th.dataset.type;
+
+            if (sortCol === col) {
+                sortDir = (sortDir === 'asc') ? 'desc' : 'asc';
+            } else {
+                sortCol = col;
+                sortDir = 'asc';
+            }
+
+            rowsData.sort((a, b) => {
+                let valA = a[col], valB = b[col];
+                if (type === 'number') {
+                    return sortDir === 'asc' ? valA - valB : valB - valA;
+                } else {
+                    if (valA < valB) return sortDir === 'asc' ? -1 : 1;
+                    if (valA > valB) return sortDir === 'asc' ? 1 : -1;
+                    return 0;
+                }
+            });
+
+            // reorder actual DOM rows to match sorted array, total row stays last
+            // batched via DocumentFragment so this is one reflow instead of thousands
+            const fragment = document.createDocumentFragment();
+            rowsData.forEach(row => fragment.appendChild(row.el));
+            fragment.appendChild(totalRowEl);
+            tbody.appendChild(fragment);
+
+            // update arrow indicators
+            document.querySelectorAll('.sort-arrow').forEach(arrow => {
+                arrow.classList.remove('active');
+                arrow.textContent = '▲';
+            });
+            const activeArrow = th.querySelector('.sort-arrow');
+            activeArrow.classList.add('active');
+            activeArrow.textContent = sortDir === 'asc' ? '▲' : '▼';
+        });
+    });
 
     document.getElementById('clearFilters').addEventListener('click', () => {
         CHECKBOX_COLS.forEach(col => activeFilters[col].clear());
