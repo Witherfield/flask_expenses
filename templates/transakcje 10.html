@@ -85,7 +85,7 @@
                             <td>{{ row["TYP"] }}</td>
                             <td>{{ row["KATEGORIA"] }}</td>
                             <td>{{ row["MIEJSCE"] }}</td>
-                            <td class="text-end fw-bold {{ 'text-danger' if row['KWOTA'] < 0 else 'text-success' }}">
+                            <td class="text-end {{ 'text-danger' if row['KWOTA'] < 0 else 'text-success' }}">
                                 {{ "{:,.2f}".format(row["KWOTA"]) }} zł
                             </td>
                             <td>{{ row["KONTO"] }}</td>
@@ -110,36 +110,11 @@
     <script>
     const table = document.getElementById('transakcjeTable');
     const CHECKBOX_COLS = ['1', '2', '3', '5']; // TYP, KATEGORIA, MIEJSCE, KONTO
-    const activeFilters = {};
+    const activeFilters = {}; // { colIndex: Set of selected values }
     let dateFrom = '';
     let dateTo = '';
 
     CHECKBOX_COLS.forEach(col => activeFilters[col] = new Set());
-
-    // parses "1,234.56 zł" or "-123.45 zł" back into a float
-    function parseKwota(text) {
-        const cleaned = text.replace('zł', '').replace(/,/g, '').trim();
-        const val = parseFloat(cleaned);
-        return isNaN(val) ? 0 : val;
-    }
-
-    function formatKwota(val) {
-        return val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    }
-
-    // --- One-time cache: read the DOM once into plain JS objects ---
-    const rowsData = [];
-    table.querySelectorAll('tbody tr:not(.total-row)').forEach(tr => {
-        rowsData.push({
-            el: tr,
-            0: tr.children[0].textContent.trim(), // DATA
-            1: tr.children[1].textContent.trim(), // TYP
-            2: tr.children[2].textContent.trim(), // KATEGORIA
-            3: tr.children[3].textContent.trim(), // MIEJSCE
-            4: parseKwota(tr.children[4].textContent), // KWOTA (numeric)
-            5: tr.children[5].textContent.trim()  // KONTO
-        });
-    });
 
     function setButtonActive(button, isActive) {
         if (isActive) {
@@ -151,18 +126,23 @@
         }
     }
 
-    // returns true if a cached row object passes date + all checkbox filters EXCEPT excludeCol
+    // returns true if a row passes the date filter and all checkbox filters EXCEPT excludeCol
     function rowPasses(row, excludeCol) {
+        // date filter always applies
         if (dateFrom || dateTo) {
-            const cellDate = row[0];
-            if (dateFrom && cellDate < dateFrom) return false;
-            if (dateTo && cellDate > dateTo) return false;
+            const cell = row.children[0];
+            if (cell) {
+                const cellDate = cell.textContent.trim();
+                if (dateFrom && cellDate < dateFrom) return false;
+                if (dateTo && cellDate > dateTo) return false;
+            }
         }
         for (const col of CHECKBOX_COLS) {
             if (col === excludeCol) continue;
             const selected = activeFilters[col];
             if (selected.size === 0) continue;
-            if (!selected.has(row[col])) return false;
+            const cell = row.children[col];
+            if (cell && !selected.has(cell.textContent.trim())) return false;
         }
         return true;
     }
@@ -174,13 +154,15 @@
         const button = dropdown.querySelector('.dropdown-toggle');
         const selected = activeFilters[col];
 
+        // values available given every OTHER active filter (faceted)
         const values = new Set();
-        for (const row of rowsData) {
-            if (!rowPasses(row, col)) continue;
-            values.add(row[col]);
-        }
+        table.querySelectorAll('tbody tr:not(.total-row)').forEach(row => {
+            if (!rowPasses(row, col)) return;
+            const cell = row.children[col];
+            if (cell) values.add(cell.textContent.trim());
+        });
 
-        const fragment = document.createDocumentFragment();
+        menu.innerHTML = '';
         [...values].sort().forEach(val => {
             const id = 'chk-' + col + '-' + val.replace(/[^a-zA-Z0-9]/g, '');
             const wrapper = document.createElement('div');
@@ -190,7 +172,7 @@
                 <input class="form-check-input" type="checkbox" value="${val}" id="${id}" ${isChecked ? 'checked' : ''}>
                 <label class="form-check-label" for="${id}">${val}</label>
             `;
-            fragment.appendChild(wrapper);
+            menu.appendChild(wrapper);
 
             const checkbox = wrapper.querySelector('input');
             checkbox.addEventListener('change', () => {
@@ -205,9 +187,6 @@
                 refreshAllDropdowns();
             });
         });
-
-        menu.innerHTML = '';
-        menu.appendChild(fragment);
 
         button.textContent = selected.size > 0 ? `${label} (${selected.size})` : label;
         setButtonActive(button, selected.size > 0);
@@ -249,14 +228,29 @@
         refreshAllDropdowns();
     });
 
+    // parses "1,234.56 zł" or "-123.45 zł" back into a float
+    function parseKwota(text) {
+        const cleaned = text.replace('zł', '').replace(/,/g, '').trim();
+        const val = parseFloat(cleaned);
+        return isNaN(val) ? 0 : val;
+    }
+
+    function formatKwota(val) {
+        return val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
     function applyFilters() {
+        const rows = table.querySelectorAll('tbody tr:not(.total-row)');
         let sum = 0;
 
-        for (const row of rowsData) {
+        rows.forEach(row => {
             const visible = rowPasses(row, null);
-            row.el.style.display = visible ? '' : 'none';
-            if (visible) sum += row[4];
-        }
+            row.style.display = visible ? '' : 'none';
+            if (visible) {
+                const kwotaCell = row.children[4];
+                if (kwotaCell) sum += parseKwota(kwotaCell.textContent);
+            }
+        });
 
         const formatted = formatKwota(sum) + ' zł';
         document.getElementById('liveTotal').textContent = 'SUMA: ' + formatted;
