@@ -34,7 +34,7 @@ def salda_faktyczne():
 
     return render_template("salda_faktyczne.html", salda=rows,
                             typy=DOZWOLONE_TYPY, salda_dict=salda_dict,
-                            active="salda")
+                            active="salda_faktyczne")
 
 
 @app.route("/salda_faktyczne/aktualizuj", methods=["POST"])
@@ -46,6 +46,17 @@ def aktualizuj_salda():
     connection.commit()
     connection.close()
     return redirect("/salda_faktyczne")
+
+
+@app.route("/transakcje")
+def transakcje():
+    connection = get_db_connection()
+    cursor = connection.cursor()
+    cursor.execute("SELECT * FROM transakcje WHERE DATA >= '2017-01-01' ORDER BY ID DESC")
+    rows = cursor.fetchall()
+    connection.close()
+
+    return render_template("transakcje.html", transakcje=rows, active="transakcje")
 
 
 if __name__ == "__main__":
