@@ -15,12 +15,6 @@ def get_db_connection():
     return connection
 
 
-def clean_zero(val):
-    """Round to 2 decimals and eliminate -0.00 caused by floating point noise."""
-    rounded = round(val, 2)
-    return 0.0 if rounded == 0 else rounded
-
-
 @app.route("/")
 def home():
     return render_template("index.html")
@@ -72,17 +66,12 @@ TYP_ORDER_BONUSOWE = ['PRZYCHÓD STAŁY', 'WYDATEK BIEŻĄCY']    # <-- edit as 
 KONTO_ORDER = ["GŁÓWNE", "SKARBONKA", "KARTA PRZEDPŁACONA", "PUNKTY KAFETERYJNE", "PUNKTY BONUSOWE"]
 
 NAVY_START_DATE = '2017-01-01'      # <-- always stays 2017, never changes
-YEAR_FILTER_START = '2018-01-01'    # <-- bump this each year (e.g. to '2018-01-01') to drop old years from the rest
+YEAR_FILTER_START = '2017-01-01'    # <-- bump this each year (e.g. to '2018-01-01') to drop old years from the rest
 
 @app.route("/transakcje_roczne")
 def transakcje_roczne():
     connection = get_db_connection()
     cursor = connection.cursor()
-
-    # --- SALDA (left table next to navy PODSUMOWANIE) ---
-    cursor.execute("SELECT TYP, KWOTA FROM salda")
-    salda = cursor.fetchall()
-    salda_total = clean_zero(sum(row["KWOTA"] for row in salda))
 
     def fetch(konto_value, start_date):
         cursor.execute("""
@@ -124,6 +113,13 @@ def transakcje_roczne():
     all_rows = [rows_glowne, rows_skarbonka, rows_karta, rows_kafeteryjne, rows_bonusowe, rows_podsumowanie]
     years = sorted(set(r["ROK"] for group in all_rows for r in group))
 
+
+    def clean_zero(val):
+        """Round to 2 decimals and eliminate -0.00 caused by floating point noise."""
+        rounded = round(val, 2)
+        return 0.0 if rounded == 0 else rounded
+
+
     def build_pivot(data_rows, order_list, key_field):
         pivot = {}
         for r in data_rows:
@@ -151,7 +147,6 @@ def transakcje_roczne():
 
     return render_template("transakcje_roczne.html",
                             years=years,
-                            salda=salda, salda_total=salda_total,
                             table_rows=table_rows, year_totals=year_totals,
                             table_rows_skarbonka=table_rows_skarbonka, year_totals_skarbonka=year_totals_skarbonka,
                             table_rows_karta=table_rows_karta, year_totals_karta=year_totals_karta,

@@ -8,8 +8,22 @@
     .table td, .table th { padding: 4px 8px; }
     .roczne-table { table-layout: fixed; }
     .roczne-table th, .roczne-table td { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .roczne-table th:first-child, .roczne-table td:first-child { width: 200px; }
+    .roczne-table th:first-child, .roczne-table td:first-child { width: 220px; }
     .roczne-table th:not(:first-child), .roczne-table td:not(:first-child) { width: 140px; }
+    .table-title-badge {
+        display: inline-block;
+        padding: 8px 24px;
+        border-radius: 12px;
+        font-size: 1.3rem;
+        font-weight: bold;
+    }
+    .badge-glowne { background-color: #1b4d24; color: #fff; }
+    .badge-skarbonka { background-color: #000; color: #ffd700; }
+    .badge-karta { background-color: #6e0000; color: #fff; }
+    .badge-kafeteryjne, .badge-bonusowe { background-color: #8a0051; color: #efab00; }
+    .badge-podsumowanie { background-color: #084298; color: #fff; }
+    .badge-podsumowanie-navy { background-color: #001f4d; color: #fff; }
+    .badge-salda { background-color: #212529; color: #fff; }
     </style>
 </head>
 <body class="bg-light">
@@ -21,15 +35,121 @@
     </div>
 
     <div class="container" style="margin: 40px auto 30px auto; max-width: 1700px;">
-        <h4 class="text-center mb-3">GŁÓWNE (KONTO &amp; GOTÓWKA) — {{ "{:,.2f}".format(year_totals|sum) }} zł</h4>
+        <div class="d-flex justify-content-center align-items-start gap-4 flex-wrap">
+
+            <div>
+                <div class="text-center mb-3"><span class="table-title-badge badge-salda">SALDA — {{ "{:,.2f}".format(salda_total) }} zł</span></div>
+                <table class="table table-bordered bg-white roczne-table d-inline-block" style="text-align: left; width: auto;">
+                    <thead style="background-color: #212529 !important; color: #fff !important;">
+                        <tr style="background-color: #212529 !important; color: #fff !important;">
+                            <th style="background-color: #212529 !important; color: #fff !important;">TYP</th>
+                            <th class="text-end" style="background-color: #212529 !important; color: #fff !important;">KWOTA</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in salda %}
+                        <tr>
+                            <td class="fw-bold">{{ row["TYP"] }}</td>
+                            {% set kw = row["KWOTA"]|round(2) %}
+                            {% set kw = 0 if kw == 0 else kw %}
+                            <td class="text-end {{ '' if kw == 0 else 'fw-bold' }} {{ 'text-muted' if kw == 0 else ('text-danger' if kw < 0 else 'text-success') }}">
+                                {{ "{:,.2f}".format(kw) }} zł
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="2" class="text-center text-muted">No data yet.</td>
+                        </tr>
+                        {% endfor %}
+                        <tr class="fw-bold table-secondary">
+                            <td>GŁÓWNE</td>
+                            <td class="text-end {{ 'text-muted' if salda_total == 0 else ('text-danger' if salda_total < 0 else 'text-success') }}">{{ "{:,.2f}".format(salda_total) }} zł</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div>
+                <div class="text-center mb-3"><span class="table-title-badge badge-podsumowanie-navy">WSZYSTKO — {{ "{:,.2f}".format(year_totals_podsumowanie|sum) }} zł</span></div>
+                <table class="table table-bordered bg-white roczne-table d-inline-block" style="text-align: left; width: auto;">
+                    <thead style="background-color: #001f4d !important; color: #fff !important;">
+                        <tr style="background-color: #001f4d !important; color: #fff !important;">
+                            <th style="background-color: #001f4d !important; color: #fff !important;">KONTO</th>
+                            <th class="text-end" style="background-color: #001f4d !important; color: #fff !important;">SUMA</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                            {% for row in table_rows_podsumowanie %}
+                            <tr>
+                                <td class="fw-bold">{{ row["KONTO"] }}</td>
+                                {% set total_val = row["values"]|sum|round(2) %}
+                                {% set total_val = 0 if total_val == 0 else total_val %}
+                                <td class="text-end {{ '' if total_val == 0 else 'fw-bold' }} {{ 'text-muted' if total_val == 0 else ('text-danger' if total_val < 0 else 'text-success') }}">
+                                    {{ "{:,.2f}".format(total_val) }} zł
+                                </td>
+                            </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="2" class="text-center text-muted">No data yet.</td>
+                        </tr>
+                        {% endfor %}
+                            <tr class="fw-bold table-secondary">
+                                <td>RAZEM</td>
+                                <td class="text-end {{ 'text-muted' if year_totals_podsumowanie|sum == 0 else ('text-danger' if year_totals_podsumowanie|sum < 0 else 'text-success') }}">{{ "{:,.2f}".format(year_totals_podsumowanie|sum) }} zł</td>
+                            </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+
+        <div class="text-center mb-3"><span class="table-title-badge badge-podsumowanie">PODSUMOWANIE ROCZNE — {{ "{:,.2f}".format(year_totals_podsumowanie|sum) }} zł</span></div>
         <div style="text-align: center;">
             <div style="max-height: 450px; overflow-y: auto; display: inline-block;">
                 <table class="table table-bordered bg-white roczne-table" style="text-align: left;">
-                    <thead class="table-dark" style="position: sticky; top: 0;">
-                        <tr>
-                            <th>TYP</th>
+                    <thead style="position: sticky; top: 0; background-color: #084298 !important; color: #fff !important;">
+                        <tr style="background-color: #084298 !important; color: #fff !important;">
+                            <th style="background-color: #084298 !important; color: #fff !important;">KONTO</th>
                             {% for y in years %}
-                            <th class="text-end">{{ y }}</th>
+                            <th class="text-end" style="background-color: #084298 !important; color: #fff !important;">{{ y }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in table_rows_podsumowanie %}
+                        <tr>
+                            <td class="fw-bold">{{ row["KONTO"] }}</td>
+                            {% for val in row["values"] %}
+                            <td class="text-end {{ '' if val == 0 else 'fw-bold' }} {{ 'text-muted' if val == 0 else ('text-danger' if val < 0 else 'text-success') }}">
+                                {{ "{:,.2f}".format(val) }} zł
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="{{ 1 + years|length }}" class="text-center text-muted">No data yet.</td>
+                        </tr>
+                        {% endfor %}
+                        <tr class="fw-bold table-secondary">
+                            <td>RAZEM</td>
+                            {% for total in year_totals_podsumowanie %}
+                            <td class="text-end {{ 'text-muted' if total == 0 else ('text-danger' if total < 0 else 'text-success') }}">{{ "{:,.2f}".format(total) }} zł</td>
+                            {% endfor %}
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="text-center mb-3"><span class="table-title-badge badge-glowne">GŁÓWNE (KONTO &amp; GOTÓWKA) — {{ "{:,.2f}".format(year_totals|sum) }} zł</span></div>
+        <div style="text-align: center;">
+            <div style="max-height: 450px; overflow-y: auto; display: inline-block;">
+                <table class="table table-bordered bg-white roczne-table" style="text-align: left;">
+                    <thead style="position: sticky; top: 0; background-color: #1b4d24 !important; color: #fff !important;">
+                        <tr style="background-color: #1b4d24 !important; color: #fff !important;">
+                            <th style="background-color: #1b4d24 !important; color: #fff !important;">TYP</th>
+                            {% for y in years %}
+                            <th class="text-end" style="background-color: #1b4d24 !important; color: #fff !important;">{{ y }}</th>
                             {% endfor %}
                         </tr>
                     </thead>
@@ -59,15 +179,15 @@
             </div>
         </div>
 
-        <h4 class="text-center mb-3 mt-2">SKARBONKA — {{ "{:,.2f}".format(year_totals_skarbonka|sum) }} zł</h4>
+        <div class="text-center mb-3 mt-2"><span class="table-title-badge badge-skarbonka">SKARBONKA — {{ "{:,.2f}".format(year_totals_skarbonka|sum) }} zł</span></div>
         <div style="text-align: center;">
             <div style="max-height: 450px; overflow-y: auto; display: inline-block;">
                 <table class="table table-bordered bg-white roczne-table" style="text-align: left;">
-                    <thead class="table-dark" style="position: sticky; top: 0;">
-                        <tr>
-                            <th>TYP</th>
+                    <thead style="position: sticky; top: 0; background-color: #000 !important; color: #ffd700 !important;">
+                        <tr style="background-color: #000 !important; color: #ffd700 !important;">
+                            <th style="background-color: #000 !important; color: #ffd700 !important;">TYP</th>
                             {% for y in years %}
-                            <th class="text-end">{{ y }}</th>
+                            <th class="text-end" style="background-color: #000 !important; color: #ffd700 !important;">{{ y }}</th>
                             {% endfor %}
                         </tr>
                     </thead>
@@ -96,6 +216,121 @@
                 </table>
             </div>
         </div>
+
+        <div class="text-center mb-3 mt-2"><span class="table-title-badge badge-karta">KARTA PRZEDPŁACONA — {{ "{:,.2f}".format(year_totals_karta|sum) }} zł</span></div>
+        <div style="text-align: center;">
+            <div style="max-height: 450px; overflow-y: auto; display: inline-block;">
+                <table class="table table-bordered bg-white roczne-table" style="text-align: left;">
+                    <thead style="position: sticky; top: 0; background-color: #6e0000 !important; color: #fff !important;">
+                        <tr style="background-color: #6e0000 !important; color: #fff !important;">
+                            <th style="background-color: #6e0000 !important; color: #fff !important;">TYP</th>
+                            {% for y in years %}
+                            <th class="text-end" style="background-color: #6e0000 !important; color: #fff !important;">{{ y }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in table_rows_karta %}
+                        <tr>
+                            <td class="fw-bold">{{ row["TYP"] }}</td>
+                            {% for val in row["values"] %}
+                            <td class="text-end {{ '' if val == 0 else 'fw-bold' }} {{ 'text-muted' if val == 0 else ('text-danger' if val < 0 else 'text-success') }}">
+                                {{ "{:,.2f}".format(val) }} zł
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="{{ 1 + years|length }}" class="text-center text-muted">No data yet.</td>
+                        </tr>
+                        {% endfor %}
+                        <tr class="fw-bold table-secondary">
+                            <td>RAZEM</td>
+                            {% for total in year_totals_karta %}
+                            <td class="text-end {{ 'text-muted' if total == 0 else ('text-danger' if total < 0 else 'text-success') }}">{{ "{:,.2f}".format(total) }} zł</td>
+                            {% endfor %}
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="text-center mb-3 mt-2"><span class="table-title-badge badge-kafeteryjne">PUNKTY KAFETERYJNE — {{ "{:,.2f}".format(year_totals_kafeteryjne|sum) }} zł</span></div>
+        <div style="text-align: center;">
+            <div style="max-height: 450px; overflow-y: auto; display: inline-block;">
+                <table class="table table-bordered bg-white roczne-table" style="text-align: left;">
+                    <thead style="position: sticky; top: 0; background-color: #8a0051 !important; color: #efab00 !important;">
+                        <tr style="background-color: #8a0051 !important; color: #efab00 !important;">
+                            <th style="background-color: #8a0051 !important; color: #efab00 !important;">TYP</th>
+                            {% for y in years %}
+                            <th class="text-end" style="background-color: #8a0051 !important; color: #efab00 !important;">{{ y }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in table_rows_kafeteryjne %}
+                        <tr>
+                            <td class="fw-bold">{{ row["TYP"] }}</td>
+                            {% for val in row["values"] %}
+                            <td class="text-end {{ '' if val == 0 else 'fw-bold' }} {{ 'text-muted' if val == 0 else ('text-danger' if val < 0 else 'text-success') }}">
+                                {{ "{:,.2f}".format(val) }} zł
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="{{ 1 + years|length }}" class="text-center text-muted">No data yet.</td>
+                        </tr>
+                        {% endfor %}
+                        <tr class="fw-bold table-secondary">
+                            <td>RAZEM</td>
+                            {% for total in year_totals_kafeteryjne %}
+                            <td class="text-end {{ 'text-muted' if total == 0 else ('text-danger' if total < 0 else 'text-success') }}">{{ "{:,.2f}".format(total) }} zł</td>
+                            {% endfor %}
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="text-center mb-3 mt-2"><span class="table-title-badge badge-bonusowe">PUNKTY BONUSOWE — {{ "{:,.2f}".format(year_totals_bonusowe|sum) }} zł</span></div>
+        <div style="text-align: center;">
+            <div style="max-height: 450px; overflow-y: auto; display: inline-block;">
+                <table class="table table-bordered bg-white roczne-table" style="text-align: left;">
+                    <thead style="position: sticky; top: 0; background-color: #8a0051 !important; color: #efab00 !important;">
+                        <tr style="background-color: #8a0051 !important; color: #efab00 !important;">
+                            <th style="background-color: #8a0051 !important; color: #efab00 !important;">TYP</th>
+                            {% for y in years %}
+                            <th class="text-end" style="background-color: #8a0051 !important; color: #efab00 !important;">{{ y }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in table_rows_bonusowe %}
+                        <tr>
+                            <td class="fw-bold">{{ row["TYP"] }}</td>
+                            {% for val in row["values"] %}
+                            <td class="text-end {{ '' if val == 0 else 'fw-bold' }} {{ 'text-muted' if val == 0 else ('text-danger' if val < 0 else 'text-success') }}">
+                                {{ "{:,.2f}".format(val) }} zł
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="{{ 1 + years|length }}" class="text-center text-muted">No data yet.</td>
+                        </tr>
+                        {% endfor %}
+                        <tr class="fw-bold table-secondary">
+                            <td>RAZEM</td>
+                            {% for total in year_totals_bonusowe %}
+                            <td class="text-end {{ 'text-muted' if total == 0 else ('text-danger' if total < 0 else 'text-success') }}">{{ "{:,.2f}".format(total) }} zł</td>
+                            {% endfor %}
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
     </div>
 
 </body>
