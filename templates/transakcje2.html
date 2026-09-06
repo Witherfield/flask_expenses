@@ -17,7 +17,6 @@
     .sortable-th { cursor: pointer; user-select: none; white-space: nowrap; }
     .sort-arrow { font-size: 0.7rem; margin-left: 4px; opacity: 0.4; }
     .sort-arrow.active { opacity: 1; }
-    .total-row td { position: sticky; bottom: 0; z-index: 2; }
     </style>
 </head>
 <body class="bg-light">
@@ -70,9 +69,9 @@
         </div>
 
         <div style="text-align: center;">
-            <div id="scrollWrapper" style="overflow-y: auto; display: inline-block;">
+            <div style="max-height: 450px; overflow-y: auto; display: inline-block;">
                 <table class="table table-bordered bg-white" id="transakcjeTable" style="text-align: left;">
-                    <thead class="table-dark" style="position: sticky; top: 0; z-index: 3;">
+                    <thead class="table-dark" style="position: sticky; top: 0;">
                         <tr>
                             <th class="sortable-th" data-col="0" data-type="string">DATA <span class="sort-arrow">▲</span></th>
                             <th class="sortable-th" data-col="1" data-type="string">TYP <span class="sort-arrow">▲</span></th>
@@ -115,7 +114,6 @@
     const table = document.getElementById('transakcjeTable');
     const tbody = table.querySelector('tbody');
     const totalRowEl = table.querySelector('.total-row');
-    const scrollWrapper = document.getElementById('scrollWrapper');
     const CHECKBOX_COLS = ['1', '2', '3', '5']; // TYP, KATEGORIA, MIEJSCE, KONTO
     const activeFilters = {};
     let dateFrom = '';
@@ -124,16 +122,6 @@
     let sortDir = 'asc';
 
     CHECKBOX_COLS.forEach(col => activeFilters[col] = new Set());
-
-    // --- Dynamic height: fill viewport down to 30px from the bottom of the screen ---
-    function setScrollHeight() {
-        const rect = scrollWrapper.getBoundingClientRect();
-        const available = window.innerHeight - rect.top - 30;
-        scrollWrapper.style.maxHeight = Math.max(available, 150) + 'px';
-    }
-    window.addEventListener('load', setScrollHeight);
-    window.addEventListener('resize', setScrollHeight);
-    setScrollHeight();
 
     // parses "1,234.56 zł" or "-123.45 zł" back into a float
     function parseKwota(text) {

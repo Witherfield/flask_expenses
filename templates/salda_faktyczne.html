@@ -43,7 +43,7 @@
                 {% endfor %}
                 <tr class="fw-bold table-dark">
                     <td>GŁÓWNE</td>
-                    <td class="font-monospace text-end">{{ "{:,.2f}".format(salda|sum(attribute='KWOTA')) }} zł</td>
+                    <td class="text-end">{{ "{:,.2f}".format(salda|sum(attribute='KWOTA')) }} zł</td>
                 </tr>
             </tbody>
         </table>

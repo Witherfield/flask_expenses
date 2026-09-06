@@ -70,7 +70,7 @@
             </div>
 
             <div>
-                <div class="text-center mb-3"><span class="table-title-badge badge-podsumowanie-navy">WSZYSTKO — {{ "{:,.2f}".format(year_totals_podsumowanie|sum) }} zł</span></div>
+                <div class="text-center mb-3"><span class="table-title-badge badge-podsumowanie-navy">WSZYSTKO — {{ "{:,.2f}".format(grand_total_navy) }} zł</span></div>
                 <table class="table table-bordered bg-white roczne-table d-inline-block" style="text-align: left; width: auto;">
                     <thead style="background-color: #001f4d !important; color: #fff !important;">
                         <tr style="background-color: #001f4d !important; color: #fff !important;">
@@ -79,11 +79,10 @@
                         </tr>
                     </thead>
                     <tbody>
-                            {% for row in table_rows_podsumowanie %}
+                            {% for row in table_rows_navy %}
                             <tr>
                                 <td class="fw-bold">{{ row["KONTO"] }}</td>
-                                {% set total_val = row["values"]|sum|round(2) %}
-                                {% set total_val = 0 if total_val == 0 else total_val %}
+                                {% set total_val = row["total"] %}
                                 <td class="text-end {{ '' if total_val == 0 else 'fw-bold' }} {{ 'text-muted' if total_val == 0 else ('text-danger' if total_val < 0 else 'text-success') }}">
                                     {{ "{:,.2f}".format(total_val) }} zł
                                 </td>
@@ -95,15 +94,16 @@
                         {% endfor %}
                             <tr class="fw-bold table-secondary">
                                 <td>RAZEM</td>
-                                <td class="text-end {{ 'text-muted' if year_totals_podsumowanie|sum == 0 else ('text-danger' if year_totals_podsumowanie|sum < 0 else 'text-success') }}">{{ "{:,.2f}".format(year_totals_podsumowanie|sum) }} zł</td>
+                                <td class="text-end {{ 'text-muted' if grand_total_navy == 0 else ('text-danger' if grand_total_navy < 0 else 'text-success') }}">{{ "{:,.2f}".format(grand_total_navy) }} zł</td>
                             </tr>
                     </tbody>
                 </table>
             </div>
 
-        </div>
+        </div><div style="margin-bottom: 40px;"></div>
 
-        <div class="text-center mb-3"><span class="table-title-badge badge-podsumowanie">PODSUMOWANIE ROCZNE — {{ "{:,.2f}".format(year_totals_podsumowanie|sum) }} zł</span></div>
+        <!-- <div class="text-center mb-3"><span class="table-title-badge badge-podsumowanie">PODSUMOWANIE ROCZNE — {{ "{:,.2f}".format(year_totals_podsumowanie|sum) }} zł</span></div> -->
+        <div class="text-center mb-3"><span class="table-title-badge badge-podsumowanie">SALDA ROCZNE</span></div>
         <div style="text-align: center;">
             <div style="max-height: 450px; overflow-y: auto; display: inline-block;">
                 <table class="table table-bordered bg-white roczne-table" style="text-align: left;">
@@ -139,9 +139,10 @@
                     </tbody>
                 </table>
             </div>
-        </div>
+        </div><div style="margin-bottom: 40px;"></div>
 
-        <div class="text-center mb-3"><span class="table-title-badge badge-glowne">GŁÓWNE (KONTO &amp; GOTÓWKA) — {{ "{:,.2f}".format(year_totals|sum) }} zł</span></div>
+        <!-- <div class="text-center mb-3"><span class="table-title-badge badge-glowne">GŁÓWNE (KONTO &amp; GOTÓWKA) — {{ "{:,.2f}".format(year_totals|sum) }} zł</span></div> -->
+        <div class="text-center mb-3"><span class="table-title-badge badge-glowne">GŁÓWNE (KONTO &amp; GOTÓWKA)</span></div>
         <div style="text-align: center;">
             <div style="max-height: 450px; overflow-y: auto; display: inline-block;">
                 <table class="table table-bordered bg-white roczne-table" style="text-align: left;">
@@ -177,9 +178,10 @@
                     </tbody>
                 </table>
             </div>
-        </div>
+        </div><div style="margin-bottom: 40px;"></div>
 
-        <div class="text-center mb-3 mt-2"><span class="table-title-badge badge-skarbonka">SKARBONKA — {{ "{:,.2f}".format(year_totals_skarbonka|sum) }} zł</span></div>
+        <!-- <div class="text-center mb-3 mt-2"><span class="table-title-badge badge-skarbonka">SKARBONKA — {{ "{:,.2f}".format(year_totals_skarbonka|sum) }} zł</span></div> -->
+        <div class="text-center mb-3 mt-2"><span class="table-title-badge badge-skarbonka">SKARBONKA</span></div>
         <div style="text-align: center;">
             <div style="max-height: 450px; overflow-y: auto; display: inline-block;">
                 <table class="table table-bordered bg-white roczne-table" style="text-align: left;">
@@ -215,10 +217,13 @@
                     </tbody>
                 </table>
             </div>
-        </div>
+        </div><div style="margin-bottom: 40px;"></div>
 
-        <div class="text-center mb-3 mt-2"><span class="table-title-badge badge-karta">KARTA PRZEDPŁACONA — {{ "{:,.2f}".format(year_totals_karta|sum) }} zł</span></div>
+        <!-- <div class="text-center mb-3 mt-2"><span class="table-title-badge badge-karta">KARTA PRZEDPŁACONA — {{ "{:,.2f}".format(year_totals_karta|sum) }} zł</span></div> -->
+        <div class="text-center mb-3 mt-2"><span class="table-title-badge badge-karta">KARTA PRZEDPŁACONA</span></div>
+
         <div style="text-align: center;">
+            
             <div style="max-height: 450px; overflow-y: auto; display: inline-block;">
                 <table class="table table-bordered bg-white roczne-table" style="text-align: left;">
                     <thead style="position: sticky; top: 0; background-color: #6e0000 !important; color: #fff !important;">
@@ -253,9 +258,10 @@
                     </tbody>
                 </table>
             </div>
-        </div>
+        </div><div style="margin-bottom: 40px;"></div>
 
-        <div class="text-center mb-3 mt-2"><span class="table-title-badge badge-kafeteryjne">PUNKTY KAFETERYJNE — {{ "{:,.2f}".format(year_totals_kafeteryjne|sum) }} zł</span></div>
+        <!-- <div class="text-center mb-3 mt-2"><span class="table-title-badge badge-kafeteryjne">PUNKTY KAFETERYJNE — {{ "{:,.2f}".format(year_totals_kafeteryjne|sum) }} zł</span></div> -->
+        <div class="text-center mb-3 mt-2"><span class="table-title-badge badge-kafeteryjne">PUNKTY KAFETERYJNE</span></div>
         <div style="text-align: center;">
             <div style="max-height: 450px; overflow-y: auto; display: inline-block;">
                 <table class="table table-bordered bg-white roczne-table" style="text-align: left;">
@@ -291,9 +297,10 @@
                     </tbody>
                 </table>
             </div>
-        </div>
+        </div><div style="margin-bottom: 40px;"></div>
 
-        <div class="text-center mb-3 mt-2"><span class="table-title-badge badge-bonusowe">PUNKTY BONUSOWE — {{ "{:,.2f}".format(year_totals_bonusowe|sum) }} zł</span></div>
+        <!-- <div class="text-center mb-3 mt-2"><span class="table-title-badge badge-bonusowe">PUNKTY BONUSOWE — {{ "{:,.2f}".format(year_totals_bonusowe|sum) }} zł</span></div> -->
+        <div class="text-center mb-3 mt-2"><span class="table-title-badge badge-bonusowe">PUNKTY BONUSOWE</span></div>
         <div style="text-align: center;">
             <div style="max-height: 450px; overflow-y: auto; display: inline-block;">
                 <table class="table table-bordered bg-white roczne-table" style="text-align: left;">

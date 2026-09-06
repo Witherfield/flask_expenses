@@ -72,7 +72,7 @@ TYP_ORDER_BONUSOWE = ['PRZYCHÓD STAŁY', 'WYDATEK BIEŻĄCY']    # <-- edit as 
 KONTO_ORDER = ["GŁÓWNE", "SKARBONKA", "KARTA PRZEDPŁACONA", "PUNKTY KAFETERYJNE", "PUNKTY BONUSOWE"]
 
 NAVY_START_DATE = '2017-01-01'      # <-- always stays 2017, never changes
-YEAR_FILTER_START = '2018-01-01'    # <-- bump this each year (e.g. to '2018-01-01') to drop old years from the rest
+YEAR_FILTER_START = '2017-01-01'    # <-- bump this each year (e.g. to '2018-01-01') to drop old years from the rest
 
 @app.route("/transakcje_roczne")
 def transakcje_roczne():
@@ -149,6 +149,12 @@ def transakcje_roczne():
     table_rows_bonusowe, year_totals_bonusowe = build_pivot(rows_bonusowe, TYP_ORDER_BONUSOWE, "TYP")
     table_rows_podsumowanie, year_totals_podsumowanie = build_pivot(rows_podsumowanie, KONTO_ORDER, "KONTO")
 
+    # navy table: totals only, no year breakdown, always anchored at NAVY_START_DATE regardless of YEAR_FILTER_START
+    navy_totals_dict = {r["KONTO"]: clean_zero(r["SUMA"]) for r in rows_navy}
+    ordered_navy_keys = [k for k in KONTO_ORDER if k in navy_totals_dict] + [k for k in navy_totals_dict if k not in KONTO_ORDER]
+    table_rows_navy = [{"KONTO": k, "total": navy_totals_dict[k]} for k in ordered_navy_keys]
+    grand_total_navy = clean_zero(sum(row["total"] for row in table_rows_navy))
+
     return render_template("transakcje_roczne.html",
                             years=years,
                             salda=salda, salda_total=salda_total,
@@ -158,6 +164,7 @@ def transakcje_roczne():
                             table_rows_kafeteryjne=table_rows_kafeteryjne, year_totals_kafeteryjne=year_totals_kafeteryjne,
                             table_rows_bonusowe=table_rows_bonusowe, year_totals_bonusowe=year_totals_bonusowe,
                             table_rows_podsumowanie=table_rows_podsumowanie, year_totals_podsumowanie=year_totals_podsumowanie,
+                            table_rows_navy=table_rows_navy, grand_total_navy=grand_total_navy,
                             active="transakcje_roczne")
 
 
