@@ -21,6 +21,8 @@ def import_transakcje(xlsx_path="ALL.xlsx", sheet="ALL", db_path="wydatki.db"):
     connection.close()
     print(f"Inserted {len(df)} rows.")
 
+
 if __name__ == "__main__":
+
     import_transakcje()
     input("Press Enter to exit.")
